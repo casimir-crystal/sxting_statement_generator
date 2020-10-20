@@ -73,7 +73,7 @@ const clickOnRequest = async function() {
 
   if (response.ok) {
     appendMessageToLoginDiv('is-success', '成功', '数据获取成功。请继续提交下一步数据。');
-    setTimeout(transformCallback, 1800);
+    setTimeout(transformCallback, 1500);
   } else {
     appendMessageToLoginDiv('is-danger', '失败', '登陆失败。用户名密码错误，或本用户已在其他设备登陆');
   }

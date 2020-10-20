@@ -43,9 +43,9 @@ const getDataFilePath = (date, suffix='') => path.join(__dirname, 'data', `${(da
 router.get('/', async ctx => {
   try {
     await fs.access(getDataFilePath(ctx.state.today));
-    await ctx.redirect('/generate_statement');
+    ctx.redirect('/fetch_statement');
   } catch(err) {
-    await ctx.redirect('/request_info');
+    ctx.redirect('/request_info');
   }
 
 
@@ -77,16 +77,15 @@ router.get('/', async ctx => {
   }
 
   await fs.writeFile(getDataFilePath(ctx.state.today), JSON.stringify(formatStatement(ctx.state.today, fullInfo)));
-  await ctx.redirect('/generate_statement');
+  ctx.redirect('/fetch_statement');
 
 
-}).get('/generate_statement', async ctx => {
+}).get('/fetch_statement', async ctx => {
   let { date } = ctx.query;
   if (!date) date = ctx.state.today.toLocaleDateString();
 
   const statement = JSON.parse(await fs.readFile(getDataFilePath(date)));
-
-  await ctx.render('generate_statement', { statement });
+  await ctx.render('fetch_statement', { statement });
 
 
 }).get('/api/request_from_background', async ctx => {

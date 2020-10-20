@@ -1,0 +1,20 @@
+html {
+  overflow: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+}
+
+table {
+  text-align: center;
+  white-space: nowrap;
+}
+
+thead {
+  font-weight: bold;
+}
+
+.table th, .table td {
+  padding: .4em .9em;
+  font-weight: inherit;
+  font-family: Arial, "Microsoft Yahei", serif;
+}

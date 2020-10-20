@@ -8,10 +8,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 
-    <script src="/js/request-from-background.js"></script>
+    <script src="/js/request_from_background.js"></script>
     <style>
       :root {
-        --animate-duration: 800ms;
+        --animate-duration: 600ms;
       }
 
       html, body {
@@ -41,7 +41,7 @@
       <div id="login" class="block">
         <div class="block">
           首先我们需要获取门店收银机的数据。请先<strong class="has-text-danger">不要登录或退出你的门店管理账号</strong>。<br />
-          下方输入账号密码后，点击<strong class="has-text-success">获取数据</strong>。
+          下方输入账号密码后，点击<strong class="has-text-primary">获取数据</strong>。
         </div>
 
         <div class="panel">
@@ -67,7 +67,7 @@
                 </div>
               </div>
 
-              <button type="button" class="button is-success" id="request">获取数据</button>
+              <button type="button" class="button is-primary" id="request">获取数据</button>
             </form>
           </div>
         </div>
@@ -133,7 +133,7 @@
 
               <div class="block">
               <div class="field">
-                <label class="label has-text-danger">昨日累计营业额</label>
+                <label class="label">昨日累计营业额</label>
                 <div class="control has-icons-left">
                   <input class="input" name="yesterday_all_sales" class="form-control" type="number" step="0.01" placeholder="昨日累计营业额" required />
                   <span class="icon is-small is-left">
@@ -143,7 +143,7 @@
               </div>
 
               <div class="field">
-                <label class="label has-text-danger">昨日累计GC</label>
+                <label class="label">昨日累计GC</label>
                 <div class="control has-icons-left">
                   <input class="input" name="yesterday_all_gc" class="form-control" type="number" step="1" placeholder="昨日累计GC" required />
                   <span class="icon is-small is-left">

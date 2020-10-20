@@ -4,7 +4,8 @@ const sumWith = (type, fullInfo) =>
   [fullInfo[`现金支付_${type}`],
    fullInfo[`微信支付_${type}`],
    fullInfo[`支付宝支付_${type}`],
-   fullInfo[`小程序支付_${type}`],
+   fullInfo[`开个店支付_${type}`],
+   fullInfo[`商场购物卡券_${type}`],
    fullInfo[`koubei_${type}`],
    fullInfo[`kaidianbao_${type}`],
   ].reduce((sum, sales) => sum + sales);

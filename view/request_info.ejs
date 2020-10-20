@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,10 +8,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 
-    <script src="/js/request_to_background.js"></script>
+    <script src="/js/request_from_background.js"></script>
     <style>
       :root {
-        --animate-duration: 800ms;
+        --animate-duration: 600ms;
       }
 
       html, body {
@@ -35,6 +35,7 @@
   <body>
     <section class="section">
     <div class="container is-max-desktop">
+
       <h1 class="title">欢迎使用！</h1>
 
       <div id="login" class="block">
@@ -78,7 +79,7 @@
         </div>
 
         <div class="columns">
-            <form class="control">
+            <form method="POST" class="control">
               <div class="block">
               <div class="field">
                 <label class="label">美团外卖销售额</label>
@@ -125,11 +126,38 @@
               </div>
               </div>
 
+              <% if (noYesterdayStatement) { %>
+              <div class="block">
+                <p>以下请填入账本上的 <strong class="has-text-danger">昨日累计数据</strong>。</p>
+              </div>
+
+              <div class="block">
+              <div class="field">
+                <label class="label">昨日累计营业额</label>
+                <div class="control has-icons-left">
+                  <input class="input" name="yesterday_all_sales" class="form-control" type="number" step="0.01" placeholder="昨日累计营业额" required />
+                  <span class="icon is-small is-left">
+                    <i class="fas fa-yen-sign"></i>
+                  </span>
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="label">昨日累计GC</label>
+                <div class="control has-icons-left">
+                  <input class="input" name="yesterday_all_gc" class="form-control" type="number" step="1" placeholder="昨日累计GC" required />
+                  <span class="icon is-small is-left">
+                    <i class="fas fa-users"></i>
+                  </span>
+                </div>
+              </div>
+              </div>
+              <% } %>
+
               <button type="submit" class="button is-info">提交</button>
             </form>
         </div>
       </div>
-
 
     </div>
     </section>

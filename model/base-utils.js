@@ -1,1 +1,0 @@
-// to write down some global functions in this file

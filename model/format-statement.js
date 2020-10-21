@@ -12,6 +12,7 @@ const sumWith = (type, fullInfo) =>
 
 
 function formatStatement(date, fullInfo) {
+  date = new Date(Date.parse(date));
   const weekdayTable = ['日', '一', '二', '三', '四', '五', '六'];
 
   fullInfo = new Proxy(fullInfo, {

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -40,7 +40,7 @@
 
       <div id="login" class="block">
         <div class="block">
-          首先我们需要获取门店收银机的数据。请先<strong class="has-text-danger">不要登录或退出你的门店管理账号</strong>。<br />
+          首先我们需要获取门店收银机的数据。<strong class="has-text-danger">请先不要登录；或退出你的门店管理账号</strong>。<br />
           下方输入账号密码后，点击<strong class="has-text-success">获取数据</strong>。
         </div>
 
@@ -48,7 +48,7 @@
           <div class="panel-heading">门店管理账号</div>
 
           <div class="panel-block">
-            <form class="control">
+            <form class="control" id="login">
               <div class="field">
                 <div class="control has-icons-left">
                   <input class="input" type="text" placeholder="用户名" id="username">
@@ -67,7 +67,16 @@
                 </div>
               </div>
 
-              <button type="button" class="button is-success" id="request">获取数据</button>
+              <div class="field">
+                <div class="control has-icons-left">
+                  <input class="input" type="date" id="date">
+                  <span class="icon is-small is-left">
+                    <i class="fas fa-calendar-day"></i>
+                  </span>
+                </div>
+              </div>
+
+              <button type="submit" class="button is-success">获取数据</button>
             </form>
           </div>
         </div>
@@ -84,7 +93,7 @@
               <div class="field">
                 <label class="label">美团外卖销售额</label>
                 <div class="control has-icons-left">
-                  <input class="input" name="meituan_sales" class="form-control" type="number" step="0.01" placeholder="美团外卖销售额" required />
+                  <input class="input" name="meituan_sales" type="number" step="0.01" placeholder="美团外卖销售额" required />
                   <span class="icon is-small is-left">
                     <i class="fas fa-yen-sign"></i>
                   </span>
@@ -94,7 +103,7 @@
               <div class="field">
                 <label class="label">美团外卖客单数</label>
                 <div class="control has-icons-left">
-                  <input class="input" name="meituan_amount" class="form-control" type="number" step="1" placeholder="美团外卖客单数" required />
+                  <input class="input" name="meituan_amount" type="number" step="1" placeholder="美团外卖客单数" required />
                   <span class="icon is-small is-left">
                     <i class="fas fa-users"></i>
                   </span>
@@ -106,7 +115,7 @@
               <div class="field">
                 <label class="label">美团开店宝销售额</label>
                 <div class="control has-icons-left">
-                  <input class="input" name="kaidianbao_sales" class="form-control" type="number" step="0.01" placeholder="开店宝销售额" required />
+                  <input class="input" name="kaidianbao_sales" type="number" step="0.01" placeholder="开店宝销售额" required />
                   <span class="icon is-small is-left">
                     <i class="fas fa-yen-sign"></i>
                   </span>
@@ -118,7 +127,7 @@
               <div class="field">
                 <label class="label">口碑掌柜销售额</label>
                 <div class="control has-icons-left">
-                  <input class="input" name="koubei_sales" class="form-control" type="number" step="0.01" placeholder="口碑销售额" required />
+                  <input class="input" name="koubei_sales" type="number" step="0.01" placeholder="口碑销售额" required />
                   <span class="icon is-small is-left">
                     <i class="fas fa-yen-sign"></i>
                   </span>
@@ -126,33 +135,33 @@
               </div>
               </div>
 
-              <% if (noYesterdayStatement) { %>
-              <div class="block">
-                <p>以下请填入账本上的 <strong class="has-text-danger">昨日累计数据</strong>。</p>
-              </div>
+              <div id="request-yesterday-statement" class="block">
+                <div class="block">
+                  <p>以下请填入账本上的 <strong class="has-text-danger">昨日累计数据</strong>。</p>
+                </div>
 
-              <div class="block">
-              <div class="field">
-                <label class="label has-text-danger">昨日累计营业额</label>
-                <div class="control has-icons-left">
-                  <input class="input" name="yesterday_all_sales" class="form-control" type="number" step="0.01" placeholder="昨日累计营业额" required />
-                  <span class="icon is-small is-left">
-                    <i class="fas fa-yen-sign"></i>
-                  </span>
+                <div class="block">
+                <div class="field">
+                  <label class="label has-text-danger">昨日累计营业额</label>
+                  <div class="control has-icons-left">
+                    <input class="input" name="yesterday_all_sales" type="number" step="0.01" placeholder="昨日累计营业额" required />
+                    <span class="icon is-small is-left">
+                      <i class="fas fa-yen-sign"></i>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="label has-text-danger">昨日累计GC</label>
+                  <div class="control has-icons-left">
+                    <input class="input" name="yesterday_all_gc" type="number" step="1" placeholder="昨日累计GC" required />
+                    <span class="icon is-small is-left">
+                      <i class="fas fa-users"></i>
+                    </span>
+                  </div>
+                </div>
                 </div>
               </div>
-
-              <div class="field">
-                <label class="label has-text-danger">昨日累计GC</label>
-                <div class="control has-icons-left">
-                  <input class="input" name="yesterday_all_gc" class="form-control" type="number" step="1" placeholder="昨日累计GC" required />
-                  <span class="icon is-small is-left">
-                    <i class="fas fa-users"></i>
-                  </span>
-                </div>
-              </div>
-              </div>
-              <% } %>
 
               <button type="submit" class="button is-info">提交</button>
             </form>

@@ -44,43 +44,60 @@ const animateCSS = (element, animation) =>
 
 const transformCallback = () => animateCSS('#login', 'fadeOutDown').then(() => animateCSS('#information', 'fadeInUp'));
 
-const saveCredential = () => {
-  localStorage.setItem('username', document.querySelector('#username').value);
-  localStorage.setItem('password', document.querySelector('#password').value);
-};
 
-const loadCredential = () => {
-  document.querySelector('#username').value = localStorage.getItem('username');
-  document.querySelector('#password').value = localStorage.getItem('password');
-};
+const credential = new function() {
+  this.save = () => {
+    localStorage.setItem('username', document.querySelector('#username').value);
+    localStorage.setItem('password', document.querySelector('#password').value);
+  };
 
-const clickOnRequest = async function() {
-  saveCredential();
+  this.load = () => {
+    document.querySelector('#username').value = localStorage.getItem('username');
+    document.querySelector('#password').value = localStorage.getItem('password');
+  };
+}
+
+
+
+const submitLogin = async function(event) {
+  event.preventDefault();
 
   // start to loading fetch process
   this.classList.add('is-loading')
+  credential.save();
 
-  const params = new URLSearchParams({ 
-    username: document.querySelector('#username').value,
-    password: document.querySelector('#password').value,
+  const content = { username: document.querySelector('#username').value,
+                    password: document.querySelector('#password').value,
+                    date: document.querySelector('#date').value };
+
+  let response = await fetch('/api/request_from_background', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify(content)
   });
 
-  let loginDiv = document.querySelector('#login');
-  let response = await fetch(`/api/request_from_background?${params}`);
-
-  // fetch process is loading finished
+  // fetch process is finished
   this.classList.remove('is-loading');
+
 
   if (response.ok) {
     appendMessageToLoginDiv('is-success', '成功', '数据获取成功。请继续提交下一步数据。');
+    let yesterdayStatementExists = await fetch('/api/is_yesterday_statement_exists');
+    if (yesterdayStatementExists.ok) document.querySelector('#request-yesterday-statement').remove();
     setTimeout(transformCallback, 1500);
   } else {
-    appendMessageToLoginDiv('is-danger', '失败', '登陆失败。用户名密码错误，或本用户已在其他设备登陆');
+    appendMessageToLoginDiv('is-danger', '失败', '登陆失败。用户名密码错误，或该用户已在其他设备登陆');
   }
 };
 
 
 document.addEventListener('DOMContentLoaded', () => {
-  loadCredential();
-  document.querySelector('#request').addEventListener('click', clickOnRequest);
+  // set default date as today
+  const dateControl = document.querySelector('input[type="date"]');
+  dateControl.value = new Date().toLocaleDateString().replaceAll('/', '-');
+
+  credential.load();
+  document.querySelector('#login').addEventListener('submit', submitLogin);
 });

@@ -4,14 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>盛香亭 每日报表计算生成应用</title>
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 
-    <script src="/js/request_from_background.js"></script>
+    <script src="/js/dingding.js"></script>
     <style>
       :root {
-        --animate-duration: 600ms;
+        --animate-duration: 800ms;
       }
 
       html, body {
@@ -36,127 +37,86 @@
     <section class="section">
     <div class="container is-max-desktop">
 
-      <h1 class="title">欢迎使用！</h1>
+      <h4 class="title is-4">钉钉报表 自动生成工具</h4>
+      <div class="block">
+        作为主应用的一个扩展，本工具可以自动<strong class="has-text-info">基于前面的数据</strong>生成钉钉报表。
+      </div>
 
-      <div id="login" class="block">
-        <div class="block">
-          首先我们需要获取门店收银机的数据。请先<strong class="has-text-danger">不要登录或退出你的门店管理账号</strong>。<br />
-          下方输入账号密码后，点击<strong class="has-text-primary">获取数据</strong>。
-        </div>
 
-        <div class="panel">
-          <div class="panel-heading">门店管理账号</div>
+      <div id="monthly" class="block">
+
+        <div class="panel is-primary">
+          <div class="panel-heading">月度钉钉数据</div>
+
+          <div class="panel-block">
+            此处需要填写钉钉本月的所需数据。此内容每月只需填写一次。
+          </div>
 
           <div class="panel-block">
             <form class="control">
               <div class="field">
+                <label class="label">第一档业绩目标</label>
                 <div class="control has-icons-left">
-                  <input class="input" type="text" placeholder="用户名" id="username">
+                  <input class="input sales-levels" id="level1" type="number" step="1" placeholder="第一档业绩目标" required />
                   <span class="icon is-small is-left">
-                    <i class="fas fa-user"></i>
+                    <i class="fas fa-yen-sign"></i>
                   </span>
                 </div>
               </div>
 
               <div class="field">
+                <label class="label">第二档业绩目标</label>
                 <div class="control has-icons-left">
-                  <input class="input" type="password" placeholder="密码" id="password">
+                  <input class="input sales-levels" id="level2" type="number" step="1" placeholder="第二档业绩目标" required />
                   <span class="icon is-small is-left">
-                    <i class="fas fa-key"></i>
+                    <i class="fas fa-yen-sign"></i>
                   </span>
                 </div>
               </div>
 
-              <button type="button" class="button is-primary" id="request">获取数据</button>
+              <div class="field">
+                <label class="label">第三档业绩目标</label>
+                <div class="control has-icons-left">
+                  <input class="input sales-levels" id="level3" type="number" step="1" placeholder="第三档业绩目标" required />
+                  <span class="icon is-small is-left">
+                    <i class="fas fa-yen-sign"></i>
+                  </span>
+                </div>
+              </div>
+
+              <button type="submit" class="button is-primary" id="request">提交</button>
             </form>
           </div>
         </div>
+
       </div>
 
-      <div id="information" class="block" hidden>
-        <div class="block">
-          接下来，请打开门店手机，根据目标内容填入具体的数值。完成后点击<strong class="has-text-info">提交</strong>。
-        </div>
+      <div class="columns">
+        <form method="POST" class="control">
+          <div class="block">
+          <div class="field">
+            <label class="label">今日营业目标</label>
+            <div class="control has-icons-left">
+              <input class="input" id="today-target" type="number" step="0.01" placeholder="今日营业目标" required />
+              <span class="icon is-small is-left">
+                <i class="fas fa-yen-sign"></i>
+              </span>
+            </div>
+          </div>
 
-        <div class="columns">
-            <form method="POST" class="control">
-              <div class="block">
-              <div class="field">
-                <label class="label">美团外卖销售额</label>
-                <div class="control has-icons-left">
-                  <input class="input" name="meituan_sales" class="form-control" type="number" step="0.01" placeholder="美团外卖销售额" required />
-                  <span class="icon is-small is-left">
-                    <i class="fas fa-yen-sign"></i>
-                  </span>
-                </div>
-              </div>
+          <div class="field">
+            <label class="label">明日营业目标</label>
+            <div class="control has-icons-left">
+              <input class="input" id="tomorrow-target" type="number" step="1" placeholder="明日营业目标" required />
+              <span class="icon is-small is-left">
+                <i class="fas fa-yen-sign"></i>
+              </span>
+            </div>
+          </div>
+          </div>
 
-              <div class="field">
-                <label class="label">美团外卖客单数</label>
-                <div class="control has-icons-left">
-                  <input class="input" name="meituan_amount" class="form-control" type="number" step="1" placeholder="美团外卖客单数" required />
-                  <span class="icon is-small is-left">
-                    <i class="fas fa-users"></i>
-                  </span>
-                </div>
-              </div>
-              </div>
-
-              <div class="block">
-              <div class="field">
-                <label class="label">美团开店宝销售额</label>
-                <div class="control has-icons-left">
-                  <input class="input" name="kaidianbao_sales" class="form-control" type="number" step="0.01" placeholder="开店宝销售额" required />
-                  <span class="icon is-small is-left">
-                    <i class="fas fa-yen-sign"></i>
-                  </span>
-                </div>
-              </div>
-              </div>
-
-              <div class="block">
-              <div class="field">
-                <label class="label">口碑掌柜销售额</label>
-                <div class="control has-icons-left">
-                  <input class="input" name="koubei_sales" class="form-control" type="number" step="0.01" placeholder="口碑销售额" required />
-                  <span class="icon is-small is-left">
-                    <i class="fas fa-yen-sign"></i>
-                  </span>
-                </div>
-              </div>
-              </div>
-
-              <% if (noYesterdayStatement) { %>
-              <div class="block">
-                <p>以下请填入账本上的 <strong class="has-text-danger">昨日累计数据</strong>。</p>
-              </div>
-
-              <div class="block">
-              <div class="field">
-                <label class="label">昨日累计营业额</label>
-                <div class="control has-icons-left">
-                  <input class="input" name="yesterday_all_sales" class="form-control" type="number" step="0.01" placeholder="昨日累计营业额" required />
-                  <span class="icon is-small is-left">
-                    <i class="fas fa-yen-sign"></i>
-                  </span>
-                </div>
-              </div>
-
-              <div class="field">
-                <label class="label">昨日累计GC</label>
-                <div class="control has-icons-left">
-                  <input class="input" name="yesterday_all_gc" class="form-control" type="number" step="1" placeholder="昨日累计GC" required />
-                  <span class="icon is-small is-left">
-                    <i class="fas fa-users"></i>
-                  </span>
-                </div>
-              </div>
-              </div>
-              <% } %>
-
-              <button type="submit" class="button is-info">提交</button>
-            </form>
-        </div>
+          <button type="submit" class="button is-info">生成</button>
+        </form>
       </div>
 
     </div>

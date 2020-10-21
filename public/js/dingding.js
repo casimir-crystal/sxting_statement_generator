@@ -38,7 +38,7 @@ function monthlyOnSubmit(event) {
   });
 
   response
-  .then(() => animateCSS('#monthly', 'fadeOutDown')
+  .then(() => animateCSS('#monthly', 'flipOutX')
   .then(() => document.querySelector('#monthly').hidden = true));
 }
 

@@ -43,7 +43,11 @@
       </div>
 
 
-      <div id="monthly" class="block">
+      <% if (hasMonthlyData) { %>
+        <div id="monthly" class="block" hidden>
+      <% } else { %>
+        <div id="monthly" class="block">
+      <% } %>
 
         <div class="panel is-primary">
           <div class="panel-heading">月度钉钉数据</div>

@@ -70,6 +70,13 @@ router.post('/api/save_monthly_dingding_data', async ctx => {
   ctx.body = true;
 
 
+}).get('/api/get_monthly_dingding_data', async ctx => {
+  let date = ctx.session.date.slice(0, 7)
+  const monthlyFilePath = path.join(__dirname, 'data', ctx.session.username, `${date}_dingding.json`);
+
+  ctx.body = await fs.readFile(monthlyFilePath);
+
+
 }).post('/api/request_from_background', async ctx => {
   let { username, password, date } = ctx.request.body;
   ctx.session.username = username;
@@ -105,7 +112,17 @@ router.post('/api/save_monthly_dingding_data', async ctx => {
 
 
 }).get('/dingding', async ctx => {
-  await ctx.render('dingding');
+  let date = ctx.session.date.slice(0, 7)
+  const monthlyFilePath = path.join(__dirname, 'data', ctx.session.username, `${date}_dingding.json`);
+
+  let hasMonthlyData = true;
+  try {
+    await fs.access(monthlyFilePath);
+  } catch(error) {
+    hasMonthlyData = false;
+  }
+
+  await ctx.render('dingding', { hasMonthlyData });
 
 
 }).get('/reset', async ctx => {

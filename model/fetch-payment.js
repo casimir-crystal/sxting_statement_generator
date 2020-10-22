@@ -21,15 +21,21 @@ const { JSDOM } = jsdom;
 
 function parseHtmlTableIntoObject(html) {
   const { document } = (new JSDOM(html)).window;
-  const table = document.querySelector('tbody');
   const tableObject = {};
 
-  for (let row of [...table.querySelectorAll('tr')]) {
-    let [type, amount, sales] = Array.from(row.querySelectorAll('td')).map(e => e.textContent);
+  const tbody = document.querySelector('tbody');
+  const tfoot = tbody.nextElementSibling;
+
+  const tbodyRows = tbody.querySelectorAll('tr');
+  const tfootRows = tfoot.querySelectorAll('tr')[1];
+
+  for (let row of [...tbodyRows, tfootRows]) {
+     let [type, amount, sales]= Array.from((row.querySelectorAll('td').length) ? row.querySelectorAll('td') : row.querySelectorAll('th')).map(e => e.textContent);
 
     tableObject[`${type}_amount`] = Number(amount);
     tableObject[`${type}_sales`] = Number(sales);
   }
+
   return tableObject;
 }
 

@@ -1,16 +1,5 @@
 'use strict';
 
-const sumWith = (type, fullInfo) =>
-  [fullInfo[`现金支付_${type}`],
-   fullInfo[`微信支付_${type}`],
-   fullInfo[`支付宝支付_${type}`],
-   fullInfo[`开个店支付_${type}`],
-   fullInfo[`商场购物卡券_${type}`],
-   fullInfo[`koubei_${type}`],
-   fullInfo[`kaidianbao_${type}`],
-  ].reduce((sum, sales) => sum + sales);
-
-
 function formatStatement(date, fullInfo) {
   date = new Date(Date.parse(date));
   const weekdayTable = ['日', '一', '二', '三', '四', '五', '六'];
@@ -45,21 +34,29 @@ function formatStatement(date, fullInfo) {
     '小程序': fullInfo['开个店支付_sales'],
     '小程序GC': fullInfo['开个店支付_amount'],
     '小程序AC': fullInfo['开个店支付_sales'] / fullInfo['开个店支付_amount'],
-    '线下合计': sumWith('sales', fullInfo),
-    '线下GC': sumWith('amount', fullInfo),
+    '线下合计': [fullInfo[`现金支付_sales`],
+               fullInfo[`微信支付_sales`],
+               fullInfo[`支付宝支付_sales`],
+               fullInfo[`开个店支付_sales`],
+               fullInfo[`商场购物卡券_sales`],
+               fullInfo[`koubei_sales`],
+               fullInfo[`kaidianbao_sales`]
+              ].reduce((sum, sales) => sum + sales),
+    '线下GC': null,
     '线下AC': null,
-    '储蓄卡/福利券': fullInfo['营销员赠送_sales'],
+    '储蓄卡/福利券': fullInfo['营销员赠送_sales'] + fullInfo['会员卡支付_sales'],
     '签名': ''
   };
 
+  statementObj['线下GC'] = fullInfo['实收_amount'] - fullInfo['美团买单_amount'];
   statementObj['线下AC'] = statementObj['线下合计'] / statementObj['线下GC'];
 
   statementObj['营业额'] = statementObj['美团外卖'] + statementObj['线下合计'];
   statementObj['GC'] = statementObj['线上GC'] + statementObj['线下GC'];
   statementObj['AC'] = statementObj['营业额'] / statementObj['GC'];
 
-  statementObj['累计营业额'] = statementObj['营业额'] + fullInfo['yesterday_all_sales'];
-  statementObj['累计GC'] = statementObj['GC'] + fullInfo['yesterday_all_gc'];
+  statementObj['累计营业额'] = statementObj['营业额'] + fullInfo['昨日累计_sales'];
+  statementObj['累计GC'] = statementObj['GC'] + fullInfo['昨日累计_amount'];
 
 
   // round every numbers in the object to at most 2 decimal

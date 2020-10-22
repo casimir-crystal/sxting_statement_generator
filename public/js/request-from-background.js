@@ -96,7 +96,8 @@ const submitLogin = async function(event) {
 document.addEventListener('DOMContentLoaded', () => {
   // set default date as today
   const dateControl = document.querySelector('input[type="date"]');
-  dateControl.value = new Date().toLocaleDateString().replaceAll('/', '-');
+  let date = new Date();
+  dateControl.value = [date.getFullYear(), date.getMonth()+1, date.getDate()].join('-');
 
   credential.load();
   document.querySelector('#login').addEventListener('submit', submitLogin);

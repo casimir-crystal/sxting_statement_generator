@@ -33,8 +33,8 @@ async function fetchYesterdayStatement(date, user) {
     // try to read last '累计营业额'
     const statement = JSON.parse(await fs.readFile(getDataFilePath(yesterday, user)));
     
-    return {'yesterday_all_sales': statement['累计营业额'],
-            'yesterday_all_gc': statement['累计GC']};
+    return {'昨日累计_sales': statement['累计营业额'],
+            '昨日累计_amount': statement['累计GC']};
 
   } catch(err) {
     return false;  // if any error happens, we just return false

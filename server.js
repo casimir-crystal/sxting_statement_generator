@@ -20,6 +20,7 @@ Date.prototype.toLocaleDateString = function() {
   return [_date.getFullYear(), _date.getMonth()+1, _date.getDate()].join('-');
 }
 
+
 function getDataFilePath(date, username, suffix='') {
   return path.join(__dirname,
                    'data',
@@ -79,7 +80,7 @@ app.use(session(app));
 router.post('/api/request_from_background', async ctx => {
   let { username, password, date } = ctx.request.body;
   ctx.session.username = username;
-  ctx.session.date = (new Date(Date.parse(date)).toLocaleDateString();
+  ctx.session.date = (new Date(Date.parse(date))).toLocaleDateString();
 
   const contentObject = await fetchPaymentPromise(ctx.session.username, password, ctx.session.date);
 

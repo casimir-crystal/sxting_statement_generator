@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 
-    <script src="/js/request-from-background.js"></script>
+    <script defer src="/js/request-from-background.js"></script>
     <style>
       :root {
         --animate-duration: 800ms;
@@ -157,6 +157,16 @@
                     <input class="input" name="昨日累计_amount" type="number" step="1" placeholder="昨日累计GC" required />
                     <span class="icon is-small is-left">
                       <i class="fas fa-users"></i>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="label has-text-danger">昨日小程序营业额</label>
+                  <div class="control has-icons-left">
+                    <input class="input" name="小程序累计_sales" type="number" step="1" placeholder="昨日小程序累计营业额" required />
+                    <span class="icon is-small is-left">
+                      <i class="fas fa-yen-sign"></i>
                     </span>
                   </div>
                 </div>

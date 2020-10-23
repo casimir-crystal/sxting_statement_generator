@@ -86,6 +86,7 @@ const submitLogin = async function(event) {
     appendMessageToLoginDiv('is-success', '成功', '数据获取成功。请继续提交下一步数据。');
     let yesterdayStatementExists = await fetch('/api/is_yesterday_statement_exists');
     if (yesterdayStatementExists.ok) document.querySelector('#request-yesterday-statement').remove();
+
     setTimeout(transformCallback, 1500);
   } else {
     appendMessageToLoginDiv('is-danger', '失败', '登陆失败。用户名密码错误，或该用户已在其他设备登陆');

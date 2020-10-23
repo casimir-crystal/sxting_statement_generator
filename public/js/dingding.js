@@ -23,17 +23,15 @@ const animateCSS = (element, animation) =>
   });
 
 
-function monthlyOnSubmit(event) {
+async function monthlyOnSubmit(event) {
   event.preventDefault();
 
   const salesLevels = {};
   Array.from(document.querySelectorAll('input.sales-levels')).forEach(e => salesLevels[e.id] = parseInt(e.value))
 
-  let response = fetch('/api/save_monthly_dingding_data', {
+  let response = fetch('/api/dingding_monthly_data', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json;charset=utf-8'
-    },
+    headers: { 'Content-Type': 'application/json;charset=utf-8' },
     body: JSON.stringify(salesLevels)
   });
 
@@ -42,6 +40,16 @@ function monthlyOnSubmit(event) {
   .then(() => document.querySelector('#monthly').hidden = true));
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+
+async function dailyOnSubmit(event, statement) {
+  event.preventDefault();
+
+  let monthlyData = await (await fetch('/api/dingding_monthly_data').json());
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
   document.querySelector('#monthly').addEventListener('submit', monthlyOnSubmit);
+
+  const statement = await (await fetch('/api/fetch_statement_json')).json();
+  document.querySelector('#daily').addEventListener('submit', (event) => dailyOnSubmit(event, statement));
 });

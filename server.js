@@ -33,10 +33,12 @@ async function fetchYesterdayStatement(date, user) {
     // try to read last '累计营业额'
     const statement = JSON.parse(await fs.readFile(getDataFilePath(yesterday, user)));
     
-    return {'昨日累计_sales': statement['累计营业额'],
+    return {'小程序累计_sales': statement['小程序累计'],
+            '昨日累计_sales': statement['累计营业额'],
             '昨日累计_amount': statement['累计GC']};
 
   } catch(err) {
+    console.err(err);
     return false;  // if any error happens, we just return false
   }
 };
@@ -61,23 +63,7 @@ render(app, {
 app.keys = ['sec_keys'];
 app.use(session(app));
 
-
-router.post('/api/save_monthly_dingding_data', async ctx => {
-  let date = ctx.session.date.slice(0, 7)
-  const monthlyFilePath = path.join(__dirname, 'data', ctx.session.username, `${date}_dingding.json`);
-
-  await fs.writeFile(monthlyFilePath, JSON.stringify(ctx.request.body));
-  ctx.body = true;
-
-
-}).get('/api/get_monthly_dingding_data', async ctx => {
-  let date = ctx.session.date.slice(0, 7)
-  const monthlyFilePath = path.join(__dirname, 'data', ctx.session.username, `${date}_dingding.json`);
-
-  ctx.body = await fs.readFile(monthlyFilePath);
-
-
-}).post('/api/request_from_background', async ctx => {
+router.post('/api/request_from_background', async ctx => {
   let { username, password, date } = ctx.request.body;
   ctx.session.username = username;
   ctx.session.date = date;
@@ -99,6 +85,29 @@ router.post('/api/save_monthly_dingding_data', async ctx => {
     await fs.writeFile(getDataFilePath(date, username, '_pc'), JSON.stringify(contentObject));
     ctx.body = true;
   }
+
+
+}).get('/api/dingding_monthly_data', async ctx => {
+  let date = ctx.session.date.slice(0, 7)
+  const monthlyFilePath = path.join(__dirname, 'data', ctx.session.username, `${date}_dingding.json`);
+
+  ctx.body = await fs.readFile(monthlyFilePath);
+
+
+}).post('/api/dingding_monthly_data', async ctx => {
+  let date = ctx.session.date.slice(0, 7)
+  const monthlyFilePath = path.join(__dirname, 'data', ctx.session.username, `${date}_dingding.json`);
+
+  await fs.writeFile(monthlyFilePath, JSON.stringify(ctx.request.body));
+  ctx.body = true;
+
+
+}).get('/api/fetch_statement_json', async ctx => {
+  let date = ctx.session.date;
+  let username = ctx.session.username;
+
+  const statement = JSON.parse(await fs.readFile(getDataFilePath(date, username)));
+  ctx.body = statement;
 
 
 }).get('/api/is_yesterday_statement_exists', async ctx => {
@@ -177,10 +186,13 @@ router.post('/api/save_monthly_dingding_data', async ctx => {
 
 
 }).get('/fetch_statement', async ctx => {
-  let { date } = ctx.query;
-  if (!date) date = ctx.session.date
+  let { date, username } = ctx.query;
+  if (!date || !username) {
+    date = ctx.session.date;
+    username = ctx.session.username;
+  }
 
-  const statement = JSON.parse(await fs.readFile(getDataFilePath(date, ctx.session.username)));
+  const statement = JSON.parse(await fs.readFile(getDataFilePath(date, username)));
   await ctx.render('fetch_statement', { statement });
 });
 

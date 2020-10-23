@@ -61,6 +61,9 @@ async function fetchPaymentPromise(username, password, date) {
   // await to sync the sells data of `kaigedian`
   await axios.get(`http://pay.kaiweixin.cn/Stores/index.php?day=${date}&a=apis&m=synckaigedianordercode`, {'headers': {'Cookie': loginCookie}});
 
+  // DEBUG: set sleep for 2 seconds for sync data delay
+  await new Promise(r => setTimeout(r, 2000));
+
   let paymentResponse = await axios.get(paymentPageUrl, {'headers': {'Cookie': loginCookie}});
   return parseHtmlTableIntoObject(paymentResponse.data);
 }

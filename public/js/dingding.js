@@ -6,15 +6,9 @@ const animateCSS = (element, animation) =>
     const animationName = `${prefix}${animation}`;
     const node = document.querySelector(element);
 
-    if (node.hidden) {
-      isShow = true;
-      node.hidden = false; 
-    }
-
     node.classList.add(`${prefix}animated`, animationName);
 
     function handleAnimationEnd() {
-      if (!isShow) node.hidden = true;
       node.classList.remove(`${prefix}animated`, animationName);
       resolve('Animation ended');
     }
@@ -23,33 +17,61 @@ const animateCSS = (element, animation) =>
   });
 
 
+const loadTarget = new function() {
+  this.save = () => {
+    localStorage.setItem('lastTarget', document.querySelector('#targetTomorrow').value);
+  };
+
+  this.load = () => {
+    document.querySelector('#targetToday').value = localStorage.getItem('lastTarget');
+  };
+}
+
+
 async function monthlyOnSubmit(event) {
   event.preventDefault();
 
-  const salesLevels = {};
-  Array.from(document.querySelectorAll('input.sales-levels')).forEach(e => salesLevels[e.id] = parseInt(e.value))
+  let salesLevels = {};
+  Array.from(document.querySelectorAll('input.sales-levels')).forEach(e => salesLevels[e.id] = parseInt(e.value));
 
-  let response = fetch('/api/dingding_monthly_data', {
+  await fetch('/api/dingding_monthly_data', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json;charset=utf-8' },
     body: JSON.stringify(salesLevels)
   });
 
-  response
-  .then(() => animateCSS('#monthly', 'flipOutX')
-  .then(() => document.querySelector('#monthly').hidden = true));
+  await animateCSS('#monthly', 'flipOutX');
+  document.querySelector('#monthly').hidden = true;
 }
 
 
-async function dailyOnSubmit(event, statement) {
+async function dailyOnSubmit(event) {
   event.preventDefault();
+  loadTarget.save();
 
-  let monthlyData = await (await fetch('/api/dingding_monthly_data').json());
+  let salesTargets = {};
+  Array.from(document.querySelectorAll('input.sales-targets')).forEach(e => salesTargets[e.id] = parseInt(e.value));
+
+  let response = await fetch(`/api/format_dingding_statement?${(new URLSearchParams(salesTargets)).toString()}`);
+  document.querySelector('textarea').value = await response.text();
+
+  document.querySelector('#result-area').style.display = '';
+  await animateCSS('#result-area', 'fadeInUp');
+
+  document.querySelector('#result-area').scrollIntoView({behavior: 'smooth'})
+}
+
+
+function onCopyButtonClicked() {
+  let textarea = document.querySelector('textarea');
+  textarea.focus();
+  textarea.select();
+  document.execCommand('copy');
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  loadTarget.load();
   document.querySelector('#monthly').addEventListener('submit', monthlyOnSubmit);
-
-  const statement = await (await fetch('/api/fetch_statement_json')).json();
-  document.querySelector('#daily').addEventListener('submit', (event) => dailyOnSubmit(event, statement));
+  document.querySelector('#daily').addEventListener('submit', dailyOnSubmit);
+  document.querySelector('#copy').addEventListener('click', onCopyButtonClicked);
 });

@@ -26,8 +26,17 @@ function getDataFilePath(date, username, suffix='') {
 
 async function fetchYesterdayStatement(date, user) {
   let _date = new Date(Date.parse(date));
+
+  // if today is the first day of a month, yesterday's statement could be empty
+  if (_date.getDate === 1) return {
+    '小程序累计_sales': 0,
+    '昨日累计_sales': 0,
+    '昨日累计_amount': 0
+  };
+
   _date.setDate(_date.getDate() - 1);
   let yesterday = _date.toLocaleDateString();
+
 
   try {
     // try to read last '累计营业额'
@@ -38,7 +47,7 @@ async function fetchYesterdayStatement(date, user) {
             '昨日累计_amount': statement['累计GC']};
 
   } catch(err) {
-    console.err(err);
+    console.error(err);
     return false;  // if any error happens, we just return false
   }
 };
@@ -65,33 +74,27 @@ app.use(session(app));
 
 router.post('/api/request_from_background', async ctx => {
   let { username, password, date } = ctx.request.body;
+  const _date = new Date(Date.parse(date));
   ctx.session.username = username;
-  ctx.session.date = date;
+  ctx.session.date = [_date.getFullYear(), _date.getMonth()+1, _date.getDate()].join('-');
 
-  const contentObject = await fetchPaymentPromise(username, password, date);
+  const contentObject = await fetchPaymentPromise(ctx.session.username, password, ctx.session.date);
 
   if (!contentObject) {
     // failed to fetch data
     ctx.response.status = 400;
   } else {
     // create the dir first, ignore if exists
+    let dir = path.join(__dirname, 'data', ctx.session.username);
     try {
-      let dir = path.join(__dirname, 'data', username);
       await fs.mkdir(dir);
     } catch(error) {
       if (error.code !== 'EEXIST') throw error;
     }
 
-    await fs.writeFile(getDataFilePath(date, username, '_pc'), JSON.stringify(contentObject));
+    await fs.writeFile(getDataFilePath(ctx.session.date, ctx.session.username, '_pc'), JSON.stringify(contentObject));
     ctx.body = true;
   }
-
-
-}).get('/api/dingding_monthly_data', async ctx => {
-  let date = ctx.session.date.slice(0, 7)
-  const monthlyFilePath = path.join(__dirname, 'data', ctx.session.username, `${date}_dingding.json`);
-
-  ctx.body = await fs.readFile(monthlyFilePath);
 
 
 }).post('/api/dingding_monthly_data', async ctx => {
@@ -100,14 +103,6 @@ router.post('/api/request_from_background', async ctx => {
 
   await fs.writeFile(monthlyFilePath, JSON.stringify(ctx.request.body));
   ctx.body = true;
-
-
-}).get('/api/fetch_statement_json', async ctx => {
-  let date = ctx.session.date;
-  let username = ctx.session.username;
-
-  const statement = JSON.parse(await fs.readFile(getDataFilePath(date, username)));
-  ctx.body = statement;
 
 
 }).get('/api/is_yesterday_statement_exists', async ctx => {
@@ -120,10 +115,58 @@ router.post('/api/request_from_background', async ctx => {
   }
 
 
+}).get('/api/fetch_statement_json', async ctx => {
+  let date = ctx.session.date;
+  let username = ctx.session.username;
+
+  const statement = JSON.parse(await fs.readFile(getDataFilePath(date, username)));
+  ctx.body = statement;
+
+
+}).get('/api/format_dingding_statement', async ctx => {
+  const roundValue = value => Math.round((value + Number.EPSILON) * 100 * 100) / 100;
+  const dailyData = ctx.query;
+
+  const yearAndMonth = ctx.session.date.slice(0, 7)
+  const monthlyFilePath = path.join(__dirname, 'data', ctx.session.username, `${yearAndMonth}_dingding.json`);
+  const monthlyData = await JSON.parse(await fs.readFile(monthlyFilePath));
+
+  const statement = JSON.parse(await fs.readFile(getDataFilePath(ctx.session.date, ctx.session.username)));
+
+  const { level1,
+        level2,
+        level3,
+        targetToday,
+        targetTomorrow } = Object.assign(monthlyData, dailyData);
+
+  const _date = new Date(Date.parse(ctx.session.date));
+  const thisMonth = _date.getMonth() + 1;
+  const thisDay = _date.getDate();
+
+  ctx.body = `日期: ${thisMonth}月${thisDay}日
+班次: 晚班
+营业目标: ${targetToday}
+实际达成: ${statement['营业额']}
+完成率: ${roundValue(statement['营业额'] / targetToday)}%
+小程序客单价: ${statement['小程序AC']};
+总营业额: ${statement['累计营业额']}
+明日目标: ${targetTomorrow}
+${thisMonth}月份时间进度目标:
+第一档: ${level1} 完成率: ${roundValue(statement['累计营业额'] / level1)}%
+第二档: ${level2} 完成率: ${roundValue(statement['累计营业额'] / level2)}%
+第三档: ${level3} 完成率: ${roundValue(statement['累计营业额'] / level3)}%
+活动追踪:
+1. 小程序当日金额: ${statement['小程序']}
+2. 小程序日完成比: ${roundValue(statement['小程序'] / statement['营业额'])}%
+3. 小程序月完成比: ${roundValue(statement['小程序累计'] / statement['累计营业额'])}%
+总结：` ;
+
+
 }).get('/dingding', async ctx => {
   let date = ctx.session.date.slice(0, 7)
   const monthlyFilePath = path.join(__dirname, 'data', ctx.session.username, `${date}_dingding.json`);
 
+  // if can't access to monthlyDataFile, then we don't have it
   let hasMonthlyData = true;
   try {
     await fs.access(monthlyFilePath);
@@ -143,9 +186,10 @@ router.post('/api/request_from_background', async ctx => {
   try {
     await fs.unlink(getDataFilePath(ctx.session.date, ctx.session.username));
     ctx.session = null;
-    ctx.redirect('/');
   } catch (error) {
     console.error(error);
+  } finally {
+    ctx.redirect('/');
   }
 
 

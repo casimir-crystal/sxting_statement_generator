@@ -25,15 +25,9 @@ const animateCSS = (element, animation) =>
     const animationName = `${prefix}${animation}`;
     const node = document.querySelector(element);
 
-    if (node.hidden) {
-      isShow = true;
-      node.hidden = false; 
-    }
-
     node.classList.add(`${prefix}animated`, animationName);
 
     function handleAnimationEnd() {
-      if (!isShow) node.hidden = true;
       node.classList.remove(`${prefix}animated`, animationName);
       resolve('Animation ended');
     }
@@ -42,7 +36,13 @@ const animateCSS = (element, animation) =>
   });
 
 
-const transformCallback = () => animateCSS('#login', 'fadeOutDown').then(() => animateCSS('#information', 'fadeInUp'));
+const transformCallback = async () => {
+  await animateCSS('#login', 'fadeOutDown');
+  document.querySelector('#login').hidden = true;
+
+  document.querySelector('#information').hidden = false;
+  animateCSS('#information', 'fadeInUp');
+}
 
 
 const credential = new function() {
@@ -63,7 +63,7 @@ const submitLogin = async function(event) {
   event.preventDefault();
 
   // start to loading fetch process
-  this.classList.add('is-loading')
+  document.querySelector('#loginButton').classList.add('is-loading');
   credential.save();
 
   const content = { username: document.querySelector('#username').value,
@@ -79,7 +79,7 @@ const submitLogin = async function(event) {
   });
 
   // fetch process is finished
-  this.classList.remove('is-loading');
+  document.querySelector('#loginButton').classList.remove('is-loading');
 
 
   if (response.ok) {

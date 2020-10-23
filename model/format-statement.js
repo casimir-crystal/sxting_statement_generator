@@ -62,7 +62,7 @@ function formatStatement(date, fullInfo) {
   // round every numbers in the object to at most 2 decimal
   statementObj = new Proxy(statementObj, {
     get: (target, name) => (typeof target[name] === 'number') ? 
-         Math.round((target[name]+ Number.EPSILON) * 100) / 100 :
+         Math.round((target[name] + Number.EPSILON) * 100) / 100 :
          target[name]
   });
 

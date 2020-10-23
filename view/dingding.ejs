@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 
-    <script src="/js/dingding.js"></script>
+    <script defer src="/js/dingding.js"></script>
     <style>
       :root {
         --animate-duration: 800ms;
@@ -30,6 +30,11 @@
           margin-right: 0rem;
           margin-top: 0rem;
       }
+
+      .column {
+        padding: 0;
+        margin-top: 0.5rem;
+      }
     </style>
   </head>
 
@@ -45,7 +50,7 @@
 
       <% if (hasMonthlyData) { %>
         <div id="monthly" class="block" hidden>
-      <% } else { %>
+      <div% } else { %>
         <div id="monthly" class="block">
       <% } %>
 
@@ -101,7 +106,7 @@
           <div class="field">
             <label class="label">今日营业目标</label>
             <div class="control has-icons-left">
-              <input class="input" id="today-target" type="number" step="0.01" placeholder="今日营业目标" required />
+              <input class="input sales-targets" id="targetToday" type="number" step="1" placeholder="今日营业目标" required />
               <span class="icon is-small is-left">
                 <i class="fas fa-yen-sign"></i>
               </span>
@@ -111,7 +116,7 @@
           <div class="field">
             <label class="label">明日营业目标</label>
             <div class="control has-icons-left">
-              <input class="input" id="tomorrow-target" type="number" step="1" placeholder="明日营业目标" required />
+              <input class="input sales-targets" id="targetTomorrow" type="number" step="1" placeholder="明日营业目标" required />
               <span class="icon is-small is-left">
                 <i class="fas fa-yen-sign"></i>
               </span>
@@ -121,6 +126,21 @@
 
           <button type="submit" class="button is-info">生成</button>
         </form>
+      </div>
+
+      <div id="result-area" class="block" style="display: none;">
+        <p>已生成钉钉报表。记得<strong class="has-text-info">加上总结</strong>。</p>
+        <p>支持手动复制，或点击<strong class="has-text-primary">复制</strong>按钮。</p>
+        <br>
+        <p>如果不小心删除了内容，再次点击<strong class="has-text-info">生成</strong>即可。</p>
+
+        <div class="columns">
+          <div class="column is-two-thirds">
+            <textarea class="textarea is-success has-fixed-size" rows="18"></textarea>
+          </div>
+        </div>
+
+        <button type="button" class="button is-primary" id="copy">复制</button>
       </div>
 
     </div>

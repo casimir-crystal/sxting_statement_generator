@@ -40,34 +40,38 @@ function parseHtmlTableIntoObject(html) {
 }
 
 
-async function fetchPaymentPromise(username, password, date) {
-  // convert Date object to 'yyyy-mm-dd' formatted string
-  if (date instanceof Date) date = date.toLocaleDateString();
 
-  const paymentPageUrl = `http://pay.kaiweixin.cn/Stores/index.php?bdate=${date}+00%3A00%3A00&edate=${date}+23%3A59%3A59&a=Statics&m=payType`;
-  const postData = `username=${username}&ent=sxting&password=${password}`;
-
-  let loginResponse = await axios.post('http://pay.kaiweixin.cn/Stores/index.php?a=Public&m=login', postData);
-  const cookiesArray = Array.from(loginResponse.headers['set-cookie']);
+async function getLoginCookie(username, password) {
+  /**
+   * Login to pay.kaiweixin.cn
+   */
+  const loginForm = `username=${username}&ent=sxting&password=${password}`;
+  let loginResponse = await axios.post('http://pay.kaiweixin.cn/Stores/index.php?a=Public&m=login', loginForm);
 
   let loginCookie;
+  const cookiesArray = Array.from(loginResponse.headers['set-cookie']);
   cookiesArray.forEach(cookie => {
     if (cookie.split('=')[0] === 'ST_USER_SAVE_ID') loginCookie = cookie;
   });
-  
-  // Failed to login; maybe the credential is incorrect or the user is login on other platform already
+
+  // Failed to login; maybe the credential is incorrect or the user has already login on another platform
   if (!loginCookie) return false;
 
-  // await to sync the sells data of `kaigedian`
-  await axios.get(`http://pay.kaiweixin.cn/Stores/index.php?day=${date}&a=apis&m=synckaigedianordercode`, {'headers': {'Cookie': loginCookie}});
-
-  // DEBUG: set sleep for 2 seconds for sync data delay
-  await new Promise(r => setTimeout(r, 2000));
-
-  let paymentResponse = await axios.get(paymentPageUrl, {'headers': {'Cookie': loginCookie}});
-  return parseHtmlTableIntoObject(paymentResponse.data);
+  return loginCookie;
 }
 
 
-// export the main function
-module.exports = fetchPaymentPromise;
+const syncData = (cookie, date) => axios.get(`http://pay.kaiweixin.cn/Stores/index.php?day=${date}&a=apis&m=synckaigedianordercode`, {'headers': {'Cookie': cookie}});
+
+
+async function fetchPayment(cookie, date) {
+  const paymentPageUrl = `http://pay.kaiweixin.cn/Stores/index.php?bdate=${date}+00%3A00%3A00&edate=${date}+23%3A59%3A59&a=Statics&m=payType`;
+  const paymentResponse = await axios.get(paymentPageUrl, {'headers': {'Cookie': cookie}});
+
+  return parseHtmlTableIntoObject(paymentResponse.data);
+}
+
+  // export the main function
+module.exports = { getLoginCookie: getLoginCookie,
+                   syncData: syncData,
+                   fetchPayment: fetchPayment };

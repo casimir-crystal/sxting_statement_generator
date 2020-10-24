@@ -9,7 +9,7 @@ const session = require('koa-session');
 
 const fs = require('fs').promises;
 const path = require('path');
-const fetchPaymentPromise = require('./model/fetch-payment');
+const payment = require('./model/payment');
 const formatStatement = require('./model/format-statement');
 
 const app = new Koa();
@@ -79,16 +79,16 @@ app.use(session(app));
 
 router.post('/api/request_from_background', async ctx => {
   let { username, password, date } = ctx.request.body;
-  ctx.session.username = username;
   ctx.session.date = (new Date(Date.parse(date))).toLocaleDateString();
 
-  const contentObject = await fetchPaymentPromise(ctx.session.username, password, ctx.session.date);
+  ctx.session.username = username;
+  ctx.session.cookie = await payment.getLoginCookie(username, password);
 
-  if (!contentObject) {
-    // failed to fetch data
+  if (!ctx.session.cookie) {
+    // failed to login
     ctx.response.status = 400;
   } else {
-    // create the dir first, ignore if exists
+    // create folder to save this user's statements
     let dir = path.join(__dirname, 'data', ctx.session.username);
     try {
       await fs.mkdir(dir);
@@ -96,8 +96,9 @@ router.post('/api/request_from_background', async ctx => {
       if (error.code !== 'EEXIST') throw error;
     }
 
-    await fs.writeFile(getDataFilePath(ctx.session.date, ctx.session.username, '_pc'), JSON.stringify(contentObject));
-    ctx.body = true;
+    // sync the data of kaigedian immediately
+    payment.syncData(ctx.session.cookie, ctx.session.date);
+    ctx.response.status = 200;
   }
 
 
@@ -106,7 +107,7 @@ router.post('/api/request_from_background', async ctx => {
   const monthlyFilePath = path.join(__dirname, 'data', ctx.session.username, `${date}_dingding.json`);
 
   await fs.writeFile(monthlyFilePath, JSON.stringify(ctx.request.body));
-  ctx.body = true;
+  ctx.response.status = 200;
 
 
 }).get('/api/is_yesterday_statement_exists', async ctx => {
@@ -152,7 +153,7 @@ router.post('/api/request_from_background', async ctx => {
 营业目标: ${targetToday}
 实际达成: ${statement['营业额']}
 完成率: ${roundValue(statement['营业额'] / targetToday)}%
-小程序客单价: ${statement['小程序AC']};
+小程序客单价: ${statement['小程序AC']}
 总营业额: ${statement['累计营业额']}
 明日目标: ${targetTomorrow}
 ${thisMonth}月份时间进度目标:
@@ -212,12 +213,10 @@ ${thisMonth}月份时间进度目标:
 
 
 }).post('/', async ctx => {
-  const pcFilePath = getDataFilePath(ctx.session.date, ctx.session.username, '_pc');
+  // fetch the payment data here now
+  const paymentData = await payment.fetchPayment(ctx.session.cookie, ctx.session.date);
 
-  let pcInfo = JSON.parse(await fs.readFile(pcFilePath));
-  await fs.unlink(pcFilePath);
-
-  let fullInfo = Object.assign(ctx.request.body, pcInfo);
+  let fullInfo = Object.assign(ctx.request.body, paymentData);
 
   // if yesterday's statement exists, we need to assign these data to `fullInfo`
   let yesterdayAllSalesAndGC = await fetchYesterdayStatement(ctx.session.date, ctx.session.username);
@@ -227,9 +226,9 @@ ${thisMonth}月份时间进度目标:
     fullInfo[key] = Number(fullInfo[key]);
   }
 
-  const statement = formatStatement(ctx.session.date, fullInfo);
+  await fs.writeFile(getDataFilePath(ctx.session.date, ctx.session.username), 
+                     JSON.stringify(formatStatement(ctx.session.date, fullInfo)));
 
-  await fs.writeFile(getDataFilePath(ctx.session.date, ctx.session.username), JSON.stringify(statement));
   ctx.redirect('/fetch_statement');
 
 

@@ -1,61 +1,24 @@
 'use strict';
 
+const path = require('path');
+const fs = require('fs').promises;
+
 const Koa = require('koa');
 const Router = require('koa-router');
 const render = require('koa-ejs');
 const hosting = require('koa-static');
-const bodyParser = require('koa-bodyparser');
 const session = require('koa-session');
+const bodyParser = require('koa-bodyparser');
 
-const fs = require('fs').promises;
-const path = require('path');
 const payment = require('./model/payment');
-const formatStatement = require('./model/format-statement');
+const formatStatement = require('./model/format_statement');
+const getLastTotal = require('./model/get_last_total');
+const { toLocaleDateString, StatementFile } = require("./model/utils");
+
 
 const app = new Koa();
 const router = new Router();
-
-Date.prototype.toLocaleDateString = function() {
-  const _date = new Date(Date.parse(this));
-  return [_date.getFullYear(), _date.getMonth()+1, _date.getDate()].join('-');
-}
-
-
-function getDataFilePath(date, username, suffix='') {
-  return path.join(__dirname,
-                   'data',
-                   username,
-                   `${date}${suffix}.json`);
-}
-
-
-async function fetchYesterdayStatement(date, user) {
-  let _date = new Date(Date.parse(date));
-
-  // if today is the first day of a month, yesterday's statement could be empty
-  if (_date.getDate === 1) return {
-    '小程序累计_sales': 0,
-    '昨日累计_sales': 0,
-    '昨日累计_amount': 0
-  };
-
-  _date.setDate(_date.getDate() - 1);
-  let yesterday = _date.toLocaleDateString();
-
-
-  try {
-    // try to read last '累计营业额'
-    const statement = JSON.parse(await fs.readFile(getDataFilePath(yesterday, user)));
-    
-    return {'小程序累计_sales': statement['小程序累计'],
-            '昨日累计_sales': statement['累计营业额'],
-            '昨日累计_amount': statement['累计GC']};
-
-  } catch(err) {
-    console.error(err);
-    return false;  // if any error happens, we just return false
-  }
-};
+Date.prototype.toLocaleDateString = toLocaleDateString;
 
 
 // active koa-bodyparser
@@ -77,6 +40,7 @@ render(app, {
 app.keys = ['sec_keys'];
 app.use(session(app));
 
+
 router.post('/api/request_from_background', async ctx => {
   let { username, password, date } = ctx.request.body;
   ctx.session.date = (new Date(Date.parse(date))).toLocaleDateString();
@@ -85,33 +49,25 @@ router.post('/api/request_from_background', async ctx => {
   ctx.session.cookie = await payment.getLoginCookie(username, password);
 
   if (!ctx.session.cookie) {
-    // failed to login
-    ctx.response.status = 400;
-  } else {
-    // create folder to save this user's statements
-    let dir = path.join(__dirname, 'data', ctx.session.username);
-    try {
-      await fs.mkdir(dir);
-    } catch(error) {
-      if (error.code !== 'EEXIST') throw error;
-    }
-
-    // sync the data of kaigedian immediately
-    payment.syncData(ctx.session.cookie, ctx.session.date);
-    ctx.response.status = 200;
+    ctx.response.status = 400;  // failed to login
+    return;
   }
 
+  // create folder to save this user's statements
+  let dir = path.join(__dirname, 'data', ctx.session.username);
+  try {
+    await fs.mkdir(dir);
+  } catch(error) {
+    if (error.code !== 'EEXIST') throw error;
+  }
 
-}).post('/api/dingding_monthly_data', async ctx => {
-  let date = ctx.session.date.slice(0, 7)
-  const monthlyFilePath = path.join(__dirname, 'data', ctx.session.username, `${date}_dingding.json`);
-
-  await fs.writeFile(monthlyFilePath, JSON.stringify(ctx.request.body));
+  // sync the data of kaigedian immediately
+  payment.syncData(ctx.session.cookie, ctx.session.date);
   ctx.response.status = 200;
 
 
 }).get('/api/is_yesterday_statement_exists', async ctx => {
-  let yesterdayStatementExists = await fetchYesterdayStatement(ctx.session.date, ctx.session.username);
+  const yesterdayStatementExists = await getLastTotal(ctx.session.date, ctx.session.username);
 
   if (yesterdayStatementExists) {
     ctx.response.status = 200;  // OK
@@ -121,28 +77,35 @@ router.post('/api/request_from_background', async ctx => {
 
 
 }).get('/api/fetch_statement_json', async ctx => {
-  let date = ctx.session.date;
-  let username = ctx.session.username;
-
-  const statement = JSON.parse(await fs.readFile(getDataFilePath(date, username)));
+  const statement = await new StatementFile(ctx).read();
   ctx.body = statement;
 
 
+}).post('/api/dingding_monthly_data', async ctx => {
+  const yearAndMonth = ctx.session.date.slice(0, 7);
+
+  const file = new StatementFile(ctx, yearAndMonth, null, '_dingding');
+  await file.write(JSON.stringify(ctx.request.body));
+
+  ctx.response.status = 200;
+
+
 }).get('/api/format_dingding_statement', async ctx => {
+  const statement = await new StatementFile(ctx).read();
+
   const roundValue = value => Math.round((value + Number.EPSILON) * 100 * 100) / 100;
   const dailyData = ctx.query;
 
-  const yearAndMonth = ctx.session.date.slice(0, 7)
-  const monthlyFilePath = path.join(__dirname, 'data', ctx.session.username, `${yearAndMonth}_dingding.json`);
-  const monthlyData = await JSON.parse(await fs.readFile(monthlyFilePath));
+  const yearAndMonth = ctx.session.date.slice(0, 7);
 
-  const statement = JSON.parse(await fs.readFile(getDataFilePath(ctx.session.date, ctx.session.username)));
+  const dingdingMonthFile = new StatementFile(ctx, yearAndMonth, null, '_dingding');
+  const monthlyData = await dingdingMonthFile.read();
 
   const { level1,
-        level2,
-        level3,
-        targetToday,
-        targetTomorrow } = Object.assign(monthlyData, dailyData);
+          level2,
+          level3,
+          targetToday,
+          targetTomorrow } = Object.assign(monthlyData, dailyData);
 
   const _date = new Date(Date.parse(ctx.session.date));
   const thisMonth = _date.getMonth() + 1;
@@ -168,16 +131,10 @@ ${thisMonth}月份时间进度目标:
 
 
 }).get('/dingding', async ctx => {
-  let date = ctx.session.date.slice(0, 7)
-  const monthlyFilePath = path.join(__dirname, 'data', ctx.session.username, `${date}_dingding.json`);
+  const yearAndMonth = ctx.session.date.slice(0, 7);
 
-  // if can't access to monthlyDataFile, then we don't have it
-  let hasMonthlyData = true;
-  try {
-    await fs.access(monthlyFilePath);
-  } catch(error) {
-    hasMonthlyData = false;
-  }
+  const dingdingMonthFile = new StatementFile(ctx, yearAndMonth, ctx.session.username, '_dingding');
+  const hasMonthlyData = await dingdingMonthFile.isExists();
 
   await ctx.render('dingding', { hasMonthlyData });
 
@@ -188,28 +145,12 @@ ${thisMonth}月份时间进度目标:
 
 
 }).get('/delete_statement', async ctx => {
-  try {
-    await fs.unlink(getDataFilePath(ctx.session.date, ctx.session.username));
-    ctx.session = null;
-  } catch (error) {
-    console.error(error);
-  } finally {
-    ctx.redirect('/');
-  }
+  await new StatementFile(ctx).delete();
+  ctx.redirect('/');
 
 
 }).get('/', async ctx => {
-  if (ctx.session) {
-    try {
-        await fs.access(getDataFilePath(ctx.session.date, ctx.session.username));
-        ctx.redirect('/fetch_statement');
-    } catch {
-      // if failed to find today's statement, then expire this session
-      ctx.session = null;
-    }
-  }
-
-  await ctx.render('main');
+  await ctx.render('index');
 
 
 }).post('/', async ctx => {
@@ -219,27 +160,19 @@ ${thisMonth}月份时间进度目标:
   let fullInfo = Object.assign(ctx.request.body, paymentData);
 
   // if yesterday's statement exists, we need to assign these data to `fullInfo`
-  let yesterdayAllSalesAndGC = await fetchYesterdayStatement(ctx.session.date, ctx.session.username);
+  let yesterdayAllSalesAndGC = await getLastTotal(ctx.session.date, ctx.session.username);
   if (yesterdayAllSalesAndGC) fullInfo = Object.assign(fullInfo, yesterdayAllSalesAndGC);
 
   for (let key of Object.keys(fullInfo)) {
     fullInfo[key] = Number(fullInfo[key]);
   }
 
-  await fs.writeFile(getDataFilePath(ctx.session.date, ctx.session.username), 
-                     JSON.stringify(formatStatement(ctx.session.date, fullInfo)));
-
+  await new StatementFile(ctx).write(JSON.stringify(formatStatement(ctx.session.date, fullInfo)));
   ctx.redirect('/fetch_statement');
 
 
 }).get('/fetch_statement', async ctx => {
-  let { date, username } = ctx.query;
-  if (!date || !username) {
-    date = ctx.session.date;
-    username = ctx.session.username;
-  }
-
-  const statement = JSON.parse(await fs.readFile(getDataFilePath(date, username)));
+  const statement = await new StatementFile(ctx).read();
   await ctx.render('fetch_statement', { statement });
 });
 

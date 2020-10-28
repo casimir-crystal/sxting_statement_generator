@@ -48,6 +48,7 @@ async function monthlyOnSubmit(event) {
 
   await animateCSS('#monthly', 'flipOutX');
   document.querySelector('#monthly').hidden = true;
+  await animateCSS('#daily', 'fadeInUp');  // TODO: pick a better animation
 }
 
 
@@ -82,8 +83,8 @@ async function onWechatReportButtonClick() {
 
   const text = `店铺名：盛香亭
 销售日期：${today}
-客单数：${statement['GC']}
-销售金额：${statement['营业额']}`;
+客单数：
+销售金额：`;
 
   document.querySelector('#other-info').value = text;
   document.querySelector('#other-info').style.display = '';

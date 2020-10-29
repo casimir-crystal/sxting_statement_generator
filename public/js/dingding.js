@@ -40,7 +40,7 @@ async function monthlyOnSubmit(event) {
   let salesLevels = {};
   Array.from(document.querySelectorAll('input.sales-levels')).forEach(e => salesLevels[e.id] = parseInt(e.value));
 
-  await fetch('/api/dingding_monthly_data', {
+  await fetch('/api/dingding_save_monthly', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json;charset=utf-8' },
     body: JSON.stringify(salesLevels)
@@ -59,7 +59,12 @@ async function dailyOnSubmit(event) {
   let salesTargets = {};
   Array.from(document.querySelectorAll('input.sales-targets')).forEach(e => salesTargets[e.id] = parseInt(e.value));
 
-  let response = await fetch(`/api/format_dingding_statement?${(new URLSearchParams(salesTargets)).toString()}`);
+  let response = await fetch('/dingding', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json;charset=utf-8' },
+    body: JSON.stringify(salesTargets)
+  });
+
   document.querySelector('textarea').value = await response.text();
 
   document.querySelector('#result-area').style.display = '';
@@ -75,8 +80,8 @@ function onCopyButtonClicked() {
 
 
 async function onWechatReportButtonClick() {
-  const response = await fetch('/api/fetch_statement_json');
-  const statement = await response.json();
+  // const response = await fetch('/api/fetch_statement_json');
+  // const statement = await response.json();
 
   const date = new Date();
   const today = `${date.getMonth()+1}.${date.getDate()}`;
@@ -90,7 +95,7 @@ async function onWechatReportButtonClick() {
   document.querySelector('#other-info').style.display = '';
   await animateCSS('#other-info', 'fadeInUp');
 
-  document.querySelector('#other-info').scrollIntoView({behavior: 'smooth'});
+  document.querySelector('#other-info').scrollIntoView({ behavior: 'smooth' });
 
   copyTextareaContent('#other-info');
 }

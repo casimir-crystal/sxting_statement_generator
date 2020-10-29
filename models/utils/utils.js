@@ -7,7 +7,7 @@ class StatementFile {
     date     = date     || ctx.session.date     || ctx.query.date;
     username = username || ctx.session.username || ctx.query.username;
 
-    this.filePath = path.join(__dirname, "..", "data", username, `${date}${suffix}.json`);
+    this.filePath = path.join(__dirname, "..", '..',"data", username, `${date}${suffix}.json`);
   }
 
   async _takeCare(method, returnValue=false) {

@@ -78,8 +78,6 @@ const submitLogin = async function(event) {
     body: JSON.stringify(content)
   });
 
-  // fetch process is finished
-  document.querySelector('#loginButton').classList.remove('is-loading');
 
 
   if (response.ok) {
@@ -89,6 +87,8 @@ const submitLogin = async function(event) {
 
     setTimeout(transformCallback, 1500);
   } else {
+    // allow user to fetch the data again
+    document.querySelector('#loginButton').classList.remove('is-loading');
     appendMessageToLoginDiv('is-danger', '失败', '登陆失败。用户名密码错误，或该用户已在其他设备登陆');
   }
 };

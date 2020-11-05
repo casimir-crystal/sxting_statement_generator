@@ -1,21 +1,21 @@
-"use strict";
-const path = require("path");
+/* eslint no-underscore-dangle: ["error", { "allowAfterThis": true }] */
+const path = require('path');
 const fs = require('fs').promises;
 
 class StatementFile {
-  constructor(ctx, date=null, username=null, suffix='') {
-    date     = date     || ctx.session.date     || ctx.query.date;
-    username = username || ctx.session.username || ctx.query.username;
+  constructor(ctx, date = null, username = null, suffix = '') {
+    date = date || ctx.session.date; // eslint-disable-line
+    username = username || ctx.session.username; // eslint-disable-line
 
-    this.filePath = path.join(__dirname, "..", '..',"data", username, `${date}${suffix}.json`);
+    this.filePath = path.join(__dirname, '..', '..', 'data', username, `${date}${suffix}.json`);
   }
 
-  async _takeCare(method, returnValue=false) {
+  async _takeCare(method, returnValue = false) {
     let value;
 
     try {
       value = await method(this.filePath);
-    } catch(error) {
+    } catch (error) {
       if (error.code !== 'ENOENT') throw error;
       return false;
     }
@@ -29,24 +29,29 @@ class StatementFile {
   }
 
   async write(content) {
-    return await fs.writeFile(this.filePath, content);
+    await fs.writeFile(this.filePath, content);
   }
 
   async isExists() {
-    return await this._takeCare(fs.access);
+    const status = await this._takeCare(fs.access);
+    return status;
   }
 
   async delete() {
-    return await this._takeCare(fs.unlink);
+    await this._takeCare(fs.unlink);
   }
 }
 
 function toLocaleDateString() {
-  const _date = new Date(Date.parse(this));
-  return [_date.getFullYear(), _date.getMonth() + 1, _date.getDate()].join("-");
+  const date = new Date(Date.parse(this));
+  return [
+    date.getFullYear(),
+    (`0${date.getMonth() + 1}`).slice(-2),
+    (`0${date.getDate()}`).slice(-2),
+  ].join('-');
 }
 
 module.exports = {
-  StatementFile: StatementFile,
-  toLocaleDateString: toLocaleDateString,
+  StatementFile,
+  toLocaleDateString,
 };

@@ -1,29 +1,27 @@
-const animateCSS = (element, animation) => 
-  // We create a Promise and return it
-  new Promise((resolve, reject) => {
-    let isShow;
-    const prefix = 'animate__'
-    const animationName = `${prefix}${animation}`;
-    const node = document.querySelector(element);
+const animateCSS = (element, animation) => new Promise((resolve) => {
+  const prefix = 'animate__';
+  const animationName = `${prefix}${animation}`;
+  const node = document.querySelector(element);
 
-    node.classList.add(`${prefix}animated`, animationName);
+  node.classList.add(`${prefix}animated`, animationName);
 
-    function handleAnimationEnd() {
-      node.classList.remove(`${prefix}animated`, animationName);
-      resolve('Animation ended');
-    }
+  function handleAnimationEnd() {
+    node.classList.remove(`${prefix}animated`, animationName);
+    resolve('Animation ended');
+  }
 
-    node.addEventListener('animationend', handleAnimationEnd, { once: true });
-  });
+  node.addEventListener('animationend', handleAnimationEnd, { once: true });
+});
 
-const copyTextareaContent = element => {
-  let textarea = document.querySelector(element);
+const copyTextareaContent = (element) => {
+  const textarea = document.querySelector(element);
   textarea.focus();
   textarea.select();
   document.execCommand('copy');
-}
+};
 
-const loadTarget = new function() {
+// TODO: Set and load
+const targets = new function LoadTargets() {
   this.save = () => {
     localStorage.setItem('lastTarget', document.querySelector('#targetTomorrow').value);
   };
@@ -31,38 +29,40 @@ const loadTarget = new function() {
   this.load = () => {
     document.querySelector('#targetToday').value = localStorage.getItem('lastTarget');
   };
-}
-
+}();
 
 async function monthlyOnSubmit(event) {
   event.preventDefault();
 
-  let salesLevels = {};
-  Array.from(document.querySelectorAll('input.sales-levels')).forEach(e => salesLevels[e.id] = parseInt(e.value));
+  const salesLevels = {};
+  Array.from(document.querySelectorAll('input.sales-levels')).forEach((e) => {
+    salesLevels[e.id] = parseInt(e.value, 10);
+  });
 
   await fetch('/api/dingding_save_monthly', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json;charset=utf-8' },
-    body: JSON.stringify(salesLevels)
+    body: JSON.stringify(salesLevels),
   });
 
   await animateCSS('#monthly', 'flipOutX');
   document.querySelector('#monthly').hidden = true;
-  await animateCSS('#daily', 'fadeInUp');  // TODO: pick a better animation
+  await animateCSS('#daily', 'flipInX'); // TODO: pick a better animation
 }
-
 
 async function dailyOnSubmit(event) {
   event.preventDefault();
-  loadTarget.save();
+  targets.save();
 
-  let salesTargets = {};
-  Array.from(document.querySelectorAll('input.sales-targets')).forEach(e => salesTargets[e.id] = parseInt(e.value));
+  const salesTargets = {};
+  Array.from(document.querySelectorAll('input.sales-targets')).forEach((e) => {
+    salesTargets[e.id] = parseInt(e.value, 10);
+  });
 
-  let response = await fetch('/dingding', {
+  const response = await fetch('/dingding', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json;charset=utf-8' },
-    body: JSON.stringify(salesTargets)
+    body: JSON.stringify(salesTargets),
   });
 
   document.querySelector('textarea').value = await response.text();
@@ -70,21 +70,19 @@ async function dailyOnSubmit(event) {
   document.querySelector('#result-area').style.display = '';
   await animateCSS('#result-area', 'fadeInUp');
 
-  document.querySelector('#result-area').scrollIntoView({behavior: 'smooth'});
+  document.querySelector('#result-area').scrollIntoView({ behavior: 'smooth' });
 }
-
 
 function onCopyButtonClicked() {
   copyTextareaContent('textarea');
 }
-
 
 async function onWechatReportButtonClick() {
   // const response = await fetch('/api/fetch_statement_json');
   // const statement = await response.json();
 
   const date = new Date();
-  const today = `${date.getMonth()+1}.${date.getDate()}`;
+  const today = `${date.getMonth() + 1}.${date.getDate()}`;
 
   const text = `店铺名：盛香亭
 销售日期：${today}
@@ -100,9 +98,8 @@ async function onWechatReportButtonClick() {
   copyTextareaContent('#other-info');
 }
 
-
 document.addEventListener('DOMContentLoaded', async () => {
-  loadTarget.load();
+  targets.load();
   document.querySelector('#monthly').addEventListener('submit', monthlyOnSubmit);
   document.querySelector('#daily').addEventListener('submit', dailyOnSubmit);
   document.querySelector('#copy').addEventListener('click', onCopyButtonClicked);

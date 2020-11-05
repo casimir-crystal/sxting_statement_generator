@@ -1,5 +1,3 @@
-'use strict';
-
 const path = require('path');
 
 const Koa = require('koa');
@@ -7,6 +5,7 @@ const render = require('koa-ejs');
 const hosting = require('koa-static');
 const session = require('koa-session');
 const bodyParser = require('koa-bodyparser');
+const nocache = require('koa-no-cache');
 
 const router = require('./routers');
 
@@ -16,7 +15,10 @@ const app = new Koa();
 app.use(bodyParser());
 
 // set a static path for css files refer
-app.use(hosting(path.join(__dirname, 'public')))
+app.use(hosting(path.join(__dirname, 'public')));
+
+// cache not allowed
+app.use(nocache());
 
 // set the view engine as 'ejs'
 render(app, {
@@ -24,7 +26,7 @@ render(app, {
   viewExt: 'ejs',
   cache: false,
   debug: false,
-  layout: false
+  layout: false,
 });
 
 // set koa-session
@@ -32,6 +34,7 @@ app.keys = ['sec_keys'];
 app.use(session(app));
 
 app.use(router.routes(), router.allowedMethods());
-app.listen(3000);
+app.listen(80);
 
-console.log('Server is running at http://127.0.0.1:3000/');
+// eslint-disable-next-line no-console
+console.log('Server is running at http://127.0.0.1:80/');

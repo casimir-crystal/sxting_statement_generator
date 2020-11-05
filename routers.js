@@ -15,10 +15,7 @@ router
   .post('/dingding', methods.dingdingIndexPost)
 
   .post('/api/saved_info', methods.api.savedInfo)
-
   .get('/api/statement_json', methods.api.statementJson)
-  .get('/api/is_yesterday_statement_exists', methods.api.isYesterdayStatementExists)
-
   .post('/api/dingding_save_monthly', methods.api.dingdingSaveMonthly);
 
 module.exports = router;

@@ -33,9 +33,10 @@ const methods = new function CreateMethods() {
 
     let fullInfo = Object.assign(ctx.request.body, paymentData);
 
-    // if yesterday's statement exists, we need to assign these data to `fullInfo`
-    const yesterdayAllSalesAndGC = await getLastTotals(ctx.session.date, ctx.session.username);
-    if (yesterdayAllSalesAndGC) fullInfo = Object.assign(fullInfo, yesterdayAllSalesAndGC);
+    if (!fullInfo['昨日累计_sales']) {
+      const lastTotals = await getLastTotals(ctx.session.date, ctx.session.username);
+      fullInfo = Object.assign(fullInfo, lastTotals);
+    }
 
     Object.keys(fullInfo).forEach((key) => {
       fullInfo[key] = Number(fullInfo[key]);
@@ -106,16 +107,6 @@ const methods = new function CreateMethods() {
     // sync the data of kaigedian immediately
     payment.syncData(ctx.session.cookie, ctx.session.date);
     ctx.body = response;
-  };
-
-  this.api.isYesterdayStatementExists = async (ctx) => {
-    const yesterdayStatementExists = await getLastTotals(ctx.session.date, ctx.session.username);
-
-    if (yesterdayStatementExists) {
-      ctx.response.status = 200; // OK
-    } else {
-      ctx.response.status = 400; // NO
-    }
   };
 
   this.api.statementJson = async (ctx) => {

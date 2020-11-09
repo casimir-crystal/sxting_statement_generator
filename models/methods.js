@@ -79,13 +79,12 @@ methods.api.savedInfo = async (ctx) => {
   };
 
   // failed to login
-  if (!ctx.session.isPassed && !ctx.session.cookie) {
+  if (!ctx.session.cookie) {
     ctx.body = response;
     return;
   }
 
   response.status = true;
-  ctx.session.isPassed = true;
 
   if ((await getLastTotals(ctx.session.date, ctx.session.username))) {
     response.lastTotals = true;
@@ -95,7 +94,6 @@ methods.api.savedInfo = async (ctx) => {
     response.fileExists = true;
   } else if (!ctx.session.cookie) {
     response.status = false;
-    ctx.session.isPassed = false;
   }
 
   // create the username folder to save their statements

@@ -63,6 +63,7 @@ function syncData(cookie, date) {
 
 async function fetchPayment(cookie, date) {
   const paymentPageUrl = `http://pay.kaiweixin.cn/Stores/index.php?bdate=${date}+00%3A00%3A00&edate=${date}+23%3A59%3A59&a=Statics&m=payType`;
+
   const paymentResponse = await axios.get(paymentPageUrl, {
     headers: { Cookie: cookie },
   });

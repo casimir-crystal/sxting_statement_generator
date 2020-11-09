@@ -5,7 +5,6 @@ const render = require('koa-ejs');
 const hosting = require('koa-static');
 const session = require('koa-session');
 const bodyParser = require('koa-bodyparser');
-const nocache = require('koa-no-cache');
 
 const router = require('./routers');
 
@@ -16,9 +15,6 @@ app.use(bodyParser());
 
 // set a static path for css files refer
 app.use(hosting(path.join(__dirname, 'public')));
-
-// cache not allowed
-app.use(nocache());
 
 // set the view engine as 'ejs'
 render(app, {

@@ -1,12 +1,9 @@
-'use strict';
-const { StatementFile } = require("./utils/utils");
+const { StatementFile } = require('./utils/utils');
 
-
-// TODO: decoupling from `ctx` object
-const formatDingdingStatement = async ctx => {
+const formatDingdingStatement = async (ctx) => {
   const statement = await new StatementFile(ctx).read();
 
-  const roundValue = value => Math.round((value + Number.EPSILON) * 100 * 100) / 100;
+  const roundValue = (value) => Math.round((value + Number.EPSILON) * 100 * 100) / 100;
   const dailyData = ctx.request.body;
 
   const yearAndMonth = ctx.session.date.slice(0, 7);
@@ -19,12 +16,12 @@ const formatDingdingStatement = async ctx => {
     level2,
     level3,
     targetToday,
-    targetTomorrow
+    targetTomorrow,
   } = Object.assign(monthlyData, dailyData);
 
-  const _date = new Date(Date.parse(ctx.session.date));
-  const thisMonth = _date.getMonth() + 1;
-  const thisDay = _date.getDate();
+  const date = new Date(Date.parse(ctx.session.date));
+  const thisMonth = date.getMonth() + 1;
+  const thisDay = date.getDate();
 
   return `日期: ${thisMonth}月${thisDay}日
 班次: 晚班
@@ -43,6 +40,6 @@ ${thisMonth}月份时间进度目标:
 2. 小程序日完成比: ${roundValue(statement['小程序'] / statement['营业额'])}%
 3. 小程序月完成比: ${roundValue(statement['小程序累计'] / statement['累计营业额'])}%
 总结：`;
-}
+};
 
 module.exports = formatDingdingStatement;

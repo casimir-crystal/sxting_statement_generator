@@ -17,8 +17,12 @@ function parsePageToObject(html) {
   const tableObject = {};
 
   const tbody = document.querySelector('tbody');
+  const tfoot = tbody.nextElementSibling;
 
-  tbody.querySelectorAll('tr').forEach((row) => {
+  const tbodyRows = tbody.querySelectorAll('tr');
+  const tfootRow = tfoot.querySelectorAll('tr')[1];
+
+  [...tbodyRows, tfootRow].forEach((row) => {
     const [type, amount, sales] = Array.from(
       row.querySelectorAll('td').length
         ? row.querySelectorAll('td')

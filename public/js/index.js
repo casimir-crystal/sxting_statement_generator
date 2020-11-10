@@ -61,7 +61,7 @@ async function editCurrent() {
     inputs[name].value = Math.round((value + Number.EPSILON) * 100) / 100;
   }
 
-  const statement = await fetch('/api/statement_json').then((res) => res.json());
+  const statement = await fetch('/api/get_statement_json').then((res) => res.json());
   autofill('店机美团_sales', statement.美团外卖);
   autofill('店机美团_amount', statement.线上GC);
   autofill('店机口碑_sales', statement.口碑掌柜);
@@ -86,7 +86,7 @@ async function submitLogin(event) {
     request[input] = document.querySelector(`#${input}`).value;
   });
 
-  const result = await fetch('/api/saved_info', {
+  const result = await fetch('/api/get_saved_data', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json;charset=utf-8',

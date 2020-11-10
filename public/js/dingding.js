@@ -83,11 +83,12 @@ async function onWechatReportButtonClick() {
 
   const date = new Date();
   const today = `${date.getMonth() + 1}.${date.getDate()}`;
+  const payment = await (await fetch('/api/get_payment_json')).json();
 
   const text = `店铺名：盛香亭
 销售日期：${today}
-客单数：
-销售金额：`;
+客单数：${payment['实收_amount']}
+销售金额：${payment['实收_sales']}`;
 
   document.querySelector('#other-info').value = text;
   document.querySelector('#other-info').style.display = '';

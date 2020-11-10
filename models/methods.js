@@ -65,7 +65,7 @@ methods.dingdingIndexPost = async (ctx) => {
   ctx.body = await formatDingdingStatement(ctx);
 };
 
-methods.api.savedInfo = async (ctx) => {
+methods.api.getSavedData = async (ctx) => {
   const { username, password, date } = ctx.request.body;
   ctx.session.date = (new Date(Date.parse(date))).toLocaleDateString();
 
@@ -108,9 +108,15 @@ methods.api.savedInfo = async (ctx) => {
   ctx.body = response;
 };
 
-methods.api.statementJson = async (ctx) => {
+methods.api.getStatementJson = async (ctx) => {
   const statement = await new StatementFile(ctx).read();
   ctx.body = statement;
+};
+
+methods.api.getPaymentData = async (ctx) => {
+  // fetch the payment data here now
+  const paymentData = await payment.fetchPayment(ctx.session.cookie, ctx.session.date);
+  ctx.body = paymentData;
 };
 
 methods.api.dingdingSaveMonthly = async (ctx) => {

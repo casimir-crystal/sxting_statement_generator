@@ -14,7 +14,7 @@ router
   .get('/dingding', methods.dingdingIndexGet)
   .post('/dingding', methods.dingdingIndexPost)
 
-  .get('/api/get_statement_json', methods.api.statementJson)
+  .get('/api/get_statement_json', methods.api.getStatementJson)
   .get('/api/get_payment_json', methods.api.getPaymentData)
   .post('/api/get_saved_data', methods.api.getSavedData)
   .post('/api/dingding_save_monthly', methods.api.dingdingSaveMonthly);

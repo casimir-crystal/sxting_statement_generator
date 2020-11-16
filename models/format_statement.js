@@ -55,7 +55,7 @@ function formatStatement(date, fullInfo) {
   statement['线下AC'] = statement['线下合计'] / statement['线下GC'];
 
   statement['营业额'] = statement['美团外卖'] + statement['线下合计'];
-  statement.GC = statement['线上GC'] + statement['线下GC'];
+  statement.GC = statement['实收_amount'];
   statement.AC = statement['营业额'] / statement.GC;
 
   statement['累计营业额'] = statement['营业额'] + fullInfo['昨日累计_sales'];

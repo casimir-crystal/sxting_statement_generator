@@ -13,8 +13,8 @@ const animateCSS = (element, animation) => new Promise((resolve) => {
   node.addEventListener('animationend', handleAnimationEnd, { once: true });
 });
 
-const copyTextareaContent = (element) => {
-  const textarea = document.querySelector(element);
+const copyTextareaContent = (selector) => {
+  const textarea = document.querySelector(selector);
   textarea.focus();
   textarea.select();
   document.execCommand('copy');
@@ -91,15 +91,15 @@ async function onWechatReportButtonClick() {
 销售金额：${payment['实收_sales']}`;
 
   document.querySelector('#other-info').value = text;
-  document.querySelector('#other-info').style.display = '';
-  await animateCSS('#other-info', 'fadeInUp');
+  copyTextareaContent('#other-info');
 
+  document.querySelector('#other-info').style.display = '';
   document.querySelector('#other-info').scrollIntoView({ behavior: 'smooth' });
 
-  copyTextareaContent('#other-info');
+  animateCSS('#other-info', 'fadeInUp');
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   targets.load();
   document.querySelector('#monthly').addEventListener('submit', monthlyOnSubmit);
   document.querySelector('#daily').addEventListener('submit', dailyOnSubmit);

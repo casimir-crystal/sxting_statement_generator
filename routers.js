@@ -1,5 +1,5 @@
 const Router = require('koa-router');
-const methods = require('./models/methods');
+const methods = require('./lib/methods');
 
 const router = new Router();
 
